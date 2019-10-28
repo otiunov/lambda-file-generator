@@ -3,7 +3,8 @@ from flask import abort
 import json
 from mimesis.schema import Field, Schema
 from mimesis.enums import Gender
-
+from tenacity import *
+import os
 
 _ = Field('en')
 description = (
@@ -21,7 +22,38 @@ description = (
  )
 schema = Schema(schema=description)
 
-storage_client = storage.Client()
+
+class GoogleStorageContainerSingleton:
+    """
+        Container for Google Cloud Storage service connections.
+        To avoid connection initialization during unit testing.
+    """
+
+    __instance = None
+
+    @staticmethod
+    def get_instance():
+        if not GoogleStorageContainerSingleton.__instance:
+            GoogleStorageContainerSingleton()
+        return GoogleStorageContainerSingleton.__instance
+
+    def __init__(self):
+        if GoogleStorageContainerSingleton.__instance:
+            raise Exception("This class is a singleton!")
+        else:
+            self.storage_client = storage.Client()
+            self.bucket = self.init_bucket_object()
+            GoogleStorageContainerSingleton.__instance = self
+
+    @retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=2))
+    def init_bucket_object(self):
+        return self.storage_client.bucket(os.environ['TARGET_BUCKET'])
+
+
+@retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=2))
+def init_blob(filename):
+    gs_container = GoogleStorageContainerSingleton.get_instance()
+    return gs_container.bucket.blob(filename)
 
 
 def generate_data(size):
@@ -37,10 +69,11 @@ def handle(request):
     bucket_name = request_json['bucket']
     filename = request_json['filename']
     size = int(request_json['size'])
-
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(filename)
-    blob.upload_from_string('\n'.join(generate_data(size)))
+    blob = init_blob(filename)
+    print('Start data generation')
+    data = generate_data(size)
+    print('End data generation')
+    blob.upload_from_string('\n'.join(data))
 
     return f'{bucket_name}/{filename} with size: {size} has been created', 200
 

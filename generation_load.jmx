@@ -18,8 +18,8 @@
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <intProp name="LoopController.loops">-1</intProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">2</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">5</stringProp>
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">2</stringProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration"></stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
@@ -222,7 +222,7 @@
           <collectionProp name="Arguments.arguments">
             <elementProp name="bucket" elementType="Argument">
               <stringProp name="Argument.name">bucket</stringProp>
-              <stringProp name="Argument.value">kw-ingest-poc</stringProp>
+              <stringProp name="Argument.value">kw-ingest-poc-1</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
             <elementProp name="function-domain" elementType="Argument">
